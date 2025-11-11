@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
-
+import 'profile_screen.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,6 +96,11 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
         _userEmail = _emailController.text;
         _initialState = false;
       });
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+      );
     } catch (e) {
       setState(() {
         _success = false;
@@ -115,7 +120,7 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
             controller: _emailController,
             decoration: InputDecoration(labelText: 'Email'),
             validator: (value) {
-              if (value?.isEmpty??true) {
+              if (value?.isEmpty ?? true) {
                 return 'Please enter some text';
               }
               return null;
@@ -125,7 +130,7 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
             controller: _passwordController,
             decoration: InputDecoration(labelText: 'Password'),
             validator: (value) {
-              if(value?.isEmpty??true) {
+              if (value?.isEmpty ?? true) {
                 return 'Please enter some text';
               }
               return null;
@@ -148,9 +153,9 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
             child: Text(
               _initialState
                   ? 'Please Register'
-              : _success
-                  ? 'Successfully registered $_userEmail'
-                  : 'Registration failed',
+                  : _success
+                      ? 'Successfully registered $_userEmail'
+                      : 'Registration failed',
               style: TextStyle(color: _success ? Colors.green : Colors.red),
             ),
           ),
@@ -174,7 +179,7 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
   final TextEditingController _passwordController = TextEditingController();
   bool _success = false;
   bool _initialState = true;
-  String _userEmail ='';
+  String _userEmail = '';
 
   void _signInWithEmailAndPassword() async {
     try {
@@ -187,6 +192,11 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
         _userEmail = _emailController.text;
         _initialState = false;
       });
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+      );
     } catch (e) {
       setState(() {
         _success = false;
@@ -211,7 +221,7 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
             controller: _emailController,
             decoration: InputDecoration(labelText: 'Email'),
             validator: (value) {
-              if (value?.isEmpty??true) {
+              if (value?.isEmpty ?? true) {
                 return 'Please enter some text';
               }
               return null;
@@ -221,7 +231,7 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
             controller: _passwordController,
             decoration: InputDecoration(labelText: 'Password'),
             validator: (value) {
-              if (value?.isEmpty??true) {
+              if (value?.isEmpty ?? true) {
                 return 'Please enter some text';
               }
               return null;
@@ -246,8 +256,8 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
               _initialState
                   ? 'Please sign in'
                   : _success
-                  ? 'Successfully signed in $_userEmail'
-                  : 'Sign in failed',
+                      ? 'Successfully signed in $_userEmail'
+                      : 'Sign in failed',
               style: TextStyle(color: _success ? Colors.green : Colors.red),
             ),
           ),
