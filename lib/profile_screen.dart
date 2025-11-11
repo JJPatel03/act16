@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'main.dart'; 
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -9,28 +10,45 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final User? currentUser = FirebaseAuth.instance.currentUser;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _passwordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _isChanging = false;
-  String? _message;
+  bool _isUpdatingPassword = false;
 
-  Future<void> _changePassword() async {
-    if (!_formKey.currentState!.validate()) return;
+  User? get currentUser => _auth.currentUser;
 
-    setState(() => _isChanging = true);
+  Future<void> _signOut() async {
+    await _auth.signOut();
+
+    
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<void> _updatePassword() async {
+    if (_passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a new password')),
+      );
+      return;
+    }
+
+    setState(() => _isUpdatingPassword = true);
+
     try {
-      await currentUser?.updatePassword(_passwordController.text.trim());
-      setState(() {
-        _message = 'Password updated successfully!';
-      });
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _message = 'Error: ${e.message}';
-      });
-    } finally {
-      setState(() => _isChanging = false);
+      await currentUser?.updatePassword(_passwordController.text);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password updated successfully!')),
+      );
       _passwordController.clear();
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Error updating password')),
+      );
+    } finally {
+      setState(() => _isUpdatingPassword = false);
     }
   }
 
@@ -39,67 +57,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
+        actions: [
+          IconButton(
+            onPressed: _signOut,
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sign Out',
+          ),
+        ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Icon(Icons.person, size: 80),
+            const SizedBox(height: 20),
             Text(
-              'Welcome!',
-              style: Theme.of(context).textTheme.headlineSmall,
+              currentUser?.email ?? 'No user logged in',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Email: ${currentUser?.email ?? "No user signed in"}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 32),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(
-                      labelText: 'New Password',
-                      border: OutlineInputBorder(),
-                    ),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a new password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters long';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isChanging ? null : _changePassword,
-                      child: _isChanging
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
-                          : const Text('Change Password'),
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 40),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'New Password',
               ),
             ),
-            if (_message != null) ...[
-              const SizedBox(height: 20),
-              Text(
-                _message!,
-                style: TextStyle(
-                  color: _message!.startsWith('Error') ? Colors.red : Colors.green,
-                ),
-              ),
-            ]
+            const SizedBox(height: 20),
+            _isUpdatingPassword
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: _updatePassword,
+                    child: const Text('Update Password'),
+                  ),
           ],
         ),
       ),
